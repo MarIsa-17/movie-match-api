@@ -1,6 +1,6 @@
 import express from "express";
-import { movies } from "./data/movies.js";
-import e from "express";
+import moviesRouter from "./routes/movies.js";
+
 
 const app = express();
 const PORT = 3000;
@@ -11,35 +11,24 @@ app.get("/", (req, res) => {
     message: "Bienvenido a Movie Match API 🎬- Arita Pintado ",
     endpoints: {
       allMovies: `GET /movies: 'Obtener todas las películas'`,
+      filterByGenre: `GET /movies?genre=Drama 'Filtrar películas por género'`,
+      filterCombined: `GET /movies?genre=Drama&minRating=8.5&year=:year&director=Nolan 'Filtrar películas por múltiples criterios'`,
       randomMovie: `GET /movies/random: 'Obtener una película aleatoria'`,
       movieById: `GET /movies/:id: 'Obtener una película por ID'`,
     },
   });
 });
 
-app.get("/movies", (req, res) => {
-  // ruta para obtener todas las peliculas
+/*
+app.get("/movies", (req, res) => { 
+  // ruta para obtener todas las peliculas inicialmente sin filtros
   res.json(movies);
 });
+*/
 
-app.get("/movies/random", (req, res) => {
-  // ruta para obtener pelicula aleatoria
-  const randomIndex = Math.floor(Math.random() * movies.length);
-  const randomMovie = movies[randomIndex];
-  res.json(randomMovie);
-});
+app.use('/movies', moviesRouter);
 
-app.get("/movies/:id", (req, res) => {
-  // ruta para obtener pelicula por id
-  const id = parseInt(req.params.id);
-  const movie = movies.find((m) => m.id === id);
-  if (!movie) {
-    return res.status(404).json({ error: "Película no encontrada", id: id }); // importante identificar el status 404
-  }
-  res.json(movie);
-});
 
 app.listen(PORT, () => {
-  // inicia el servidor
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🎬 Movie Match API corriendo en http://localhost:${PORT}`);
 });
