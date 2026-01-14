@@ -1,25 +1,15 @@
 import { Router } from "express";
-import { movies } from "../data/movies.js";
+
+import * as moviesController from "../controllers/moviesController.js";
 
 const router = Router();
 
-// Helpers (ayudantes) para respuestas consistentes 
-const sendSuccess = (res, data) => {
-  const arr = Array.isArray(data) ? data : [data];
-  res.json({ 
-    success: true, 
-    data: arr, 
-    count: arr.length });
-};
+// Helpers (ayudantes) para respuestas consistentes se encuentran en controllers/moviesController.js
 
-const sendError = (res, status, message) => {
-  res.status(status).json({ 
-    success: false, 
-    error: message });
-};
 
-// GET /movies (con filtros)
-router.get("/", (req, res) => {
+//  actualmente en controllers/moviesController.js
+// GET /movies (con filtros)  este es endpoint principal para obtener todas las peliculas con filtros
+/* router.get("/", (req, res) => {
   let result = [...movies];// clonar el array de peliculas para no modificar el original
 
   //filtros por query params -> genre, minRating, year, director - Ordenamiento y paginacion
@@ -80,6 +70,7 @@ router.get("/", (req, res) => {
 
 // GET /movies/random
 router.get("/random", (req, res) => {
+  const randomMovie= moviesController.getRandomMovie();
   const randomIndex = Math.floor(Math.random() * movies.length);
   sendSuccess(res, movies[randomIndex]);
 });
@@ -115,5 +106,10 @@ router.get("/:id", (req, res) => {
 
   sendSuccess(res, movie);
 });
+*/
+
+router.get("/", moviesController.getMovies);
+router.get("/id", moviesController.getMovieById);
+router.get("/discover", moviesController.discoverMovies);
 
 export default router;

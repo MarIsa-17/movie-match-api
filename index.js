@@ -1,9 +1,9 @@
-import express from "express";
-import moviesRouter from "./routes/movies.js";
-
+import 'dotenv/config';
+import express from 'express';
+import moviesRouter from './routes/movies.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT||3000;
 
 app.get("/", (req, res) => {
   // inicia ruta principal
@@ -27,8 +27,4 @@ app.get("/movies", (req, res) => {
 */
 
 app.use('/movies', moviesRouter);
-
-
-app.listen(PORT, () => {
-  console.log(`🎬 Movie Match API corriendo en http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`🎬 API en http://localhost:${PORT}`));
