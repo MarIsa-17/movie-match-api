@@ -58,8 +58,9 @@ export async function enrichMoviesWithAI(movies) {
     const data = await response.json();
 
     if (data.error) {
-      console.log("🔴 Error detallado:", JSON.stringify(data.error, null, 2));
-      throw new Error(data.error.message);
+      console.error("🔴 Error de OpenRouter:", data.error.message);
+      // Devolvemos las películas sin enriquecer para que la página cargue
+      return movies.map((m) => ({ ...m, ai_enriched: null }));
     }
     if (!data.choices || data.choices.length === 0) {
       throw new Error("No se recibió respuesta de la IA");
