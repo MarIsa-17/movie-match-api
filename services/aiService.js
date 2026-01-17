@@ -4,35 +4,64 @@ const MODEL = "google/gemini-2.0-flash-exp:free";
 const cache = new Map();
 
 const systemPrompt =
-  "Eres un experto en cine. Siempre respondes estrictamente en formato JSON. No incluyas texto introductorio, solo el objeto JSON.";
+  "Eres un experto en cine. Responde SIEMPRE en español neutro. Devuelve ÚNICAMENTE JSON válido. No incluyas texto adicional.";
 
 function buildPrompt(movies) {
-  const movieList = movies.map((m) => `- "${m.title}" (${m.year})`).join("\n");
-  return `Genera anécdota, trivia, cita famosa y pitch de venta para estas películas:
+  const movieList = movies
+    .map((m) => `- "${m.title}" (${m.year})`)
+    .join("\n");
+
+  return `
+Genera anécdota, trivia, cita famosa y pitch de venta PARA CADA PELÍCULA.
+Responde TODO EN ESPAÑOL.
 ${movieList}
-Responde con este formato exacto: {"enriched":[{"title":"...","anecdote":"...","trivia":"...", "famous_quote":"...","pitch":"..."}]}`;
+
+Responde SOLO con este formato JSON exacto:
+{
+  "enriched": [
+    {
+      "title": "...",
+      "anecdote": "...",
+      "trivia": "...",
+      "famous_quote": "...",
+      "pitch": "..."
+    }
+  ]
+}
+`;
+}
+ //Extrae el PRIMER objeto JSON válido encontrado en un texto
+
+function extractJSON(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) {
+    throw new Error("No se encontró JSON en la respuesta de la IA");
+  }
+  return JSON.parse(match[0]);
 }
 
 export async function enrichMoviesWithAI(movies) {
-  if (!OPENROUTER_API_KEY)
+  // 🔒 Si no hay API key, no rompemos la app
+  if (!OPENROUTER_API_KEY) {
     return movies.map((m) => ({ ...m, ai_enriched: null }));
+  }
 
+  // 🔑 Clave de caché por títulos
   const movieTitlesKey = movies
     .map((m) => m.title)
     .sort()
     .join("|");
 
+  // ⚡ Cache
   if (cache.has(movieTitlesKey)) {
-    const cachedData = cache.get(movieTitlesKey);
-    // Verificación robusta de la caché
-    if (
-      cachedData.length > 0 &&
-      cachedData.every((m) => m.ai_enriched !== null)
-    ) {
-      console.log("🎬 Cargando desde caché...");
-      return cachedData;
+    const cached = cache.get(movieTitlesKey);
+    if (cached.every((m) => m.ai_enriched !== null)) {
+      console.log("🎬 IA cargada desde caché");
+      return cached;
     }
   }
+
+  let rawContent = "";
 
   try {
     const response = await fetch(
@@ -49,44 +78,42 @@ export async function enrichMoviesWithAI(movies) {
             { role: "system", content: systemPrompt },
             { role: "user", content: buildPrompt(movies) },
           ],
-          // SUGERENCIA: Forzar formato JSON si el modelo lo soporta
-          response_format: { type: "json_object" },
+          temperature: 0.7
         }),
-      },
+      }
     );
 
     const data = await response.json();
 
     if (data.error) {
-      console.error("🔴 Error de OpenRouter:", data.error.message);
-      // Devolvemos las películas sin enriquecer para que la página cargue
-      return movies.map((m) => ({ ...m, ai_enriched: null }));
+      console.error("🔴 Error OpenRouter:", data.error.message);
+      throw new Error(data.error.message);
     }
+
     if (!data.choices || data.choices.length === 0) {
-      throw new Error("No se recibió respuesta de la IA");
+      throw new Error("La IA no devolvió respuestas");
     }
 
-    let content = data.choices?.[0]?.message?.content;
-    if (!content) throw new Error("Cuerpo de respuesta vacío");
+    rawContent = data.choices[0]?.message?.content;
 
-    // MEJORA 1: Extracción de JSON robusta (ignora texto basura antes o después)
-    const start = content.indexOf("{");
-    const end = content.lastIndexOf("}");
-    if (start !== -1 && end !== -1) {
-      content = content.substring(start, end + 1);
+    if (!rawContent) {
+      throw new Error("Contenido de IA vacío");
     }
-    const parsed = JSON.parse(content);
 
-    const enrichedResult = movies.map((movie) => {
-      const enriched = parsed.enriched?.find((e) => {
-        const aiTitle = e.title.replace(/['"]+/g, "").toLowerCase().trim();
-        const dbTitle = movie.title.toLowerCase().trim();
-        return aiTitle.includes(dbTitle) || dbTitle.includes(aiTitle);
-      });
-      return { ...movie, ai_enriched: enriched || null };
-    });
+    // 🧠 Parseo seguro
+    const parsed = extractJSON(rawContent);
 
-    // MEJORA 2: Solo cachear si TODAS se enriquecieron (opcional, pero más seguro)
+    if (!Array.isArray(parsed.enriched)) {
+      throw new Error("Formato IA inválido: enriched no es un array");
+    }
+
+    // por índice 
+    const enrichedResult = movies.map((movie, index) => ({
+      ...movie,
+      ai_enriched: parsed.enriched[index] || null,
+    }));
+
+    // Cachear solo si todas se enriquecieron
     if (enrichedResult.every((m) => m.ai_enriched !== null)) {
       cache.set(movieTitlesKey, enrichedResult);
     }
@@ -94,7 +121,14 @@ export async function enrichMoviesWithAI(movies) {
     return enrichedResult;
   } catch (error) {
     console.error("❌ Error IA:", error.message);
-    // Retornamos los datos originales para no romper la app
-    return movies.map((m) => ({ ...m, ai_enriched: null }));
+    console.error("🧠 Respuesta cruda IA:", rawContent);
+
+    // 🔁 Fallback seguro
+    return movies.map((m) => ({
+      ...m,
+      ai_enriched: {
+        error: "No se pudo enriquecer con IA",
+      },
+    }));
   }
 }
