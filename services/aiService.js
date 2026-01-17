@@ -14,36 +14,46 @@ Responde con este formato exacto: {"enriched":[{"title":"...","anecdote":"...","
 }
 
 export async function enrichMoviesWithAI(movies) {
-  if (!OPENROUTER_API_KEY) return movies.map(m => ({ ...m, ai_enriched: null }));
+  if (!OPENROUTER_API_KEY)
+    return movies.map((m) => ({ ...m, ai_enriched: null }));
 
-  const movieTitlesKey = movies.map(m => m.title).sort().join("|");
+  const movieTitlesKey = movies
+    .map((m) => m.title)
+    .sort()
+    .join("|");
 
   if (cache.has(movieTitlesKey)) {
     const cachedData = cache.get(movieTitlesKey);
     // Verificación robusta de la caché
-    if (cachedData.length > 0 && cachedData.every(m => m.ai_enriched !== null)) {
+    if (
+      cachedData.length > 0 &&
+      cachedData.every((m) => m.ai_enriched !== null)
+    ) {
       console.log("🎬 Cargando desde caché...");
       return cachedData;
     }
   }
 
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: buildPrompt(movies) },
+          ],
+          // SUGERENCIA: Forzar formato JSON si el modelo lo soporta
+          response_format: { type: "json_object" },
+        }),
       },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: buildPrompt(movies) },
-        ],
-        // SUGERENCIA: Forzar formato JSON si el modelo lo soporta
-        response_format: { type: "json_object" }
-      }),
-    });
+    );
 
     const data = await response.json();
 
@@ -51,16 +61,19 @@ export async function enrichMoviesWithAI(movies) {
       console.log("🔴 Error detallado:", JSON.stringify(data.error, null, 2));
       throw new Error(data.error.message);
     }
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error("No se recibió respuesta de la IA");
+    }
 
     let content = data.choices?.[0]?.message?.content;
     if (!content) throw new Error("Cuerpo de respuesta vacío");
 
     // MEJORA 1: Extracción de JSON robusta (ignora texto basura antes o después)
-    const start = content.indexOf('{');
-    const end = content.lastIndexOf('}');
-    if (start === -1 || end === -1) throw new Error("No se encontró JSON");
-    content = content.substring(start, end + 1);
-
+    const start = content.indexOf("{");
+    const end = content.lastIndexOf("}");
+    if (start !== -1 && end !== -1) {
+      content = content.substring(start, end + 1);
+    }
     const parsed = JSON.parse(content);
 
     const enrichedResult = movies.map((movie) => {
