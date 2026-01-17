@@ -47,12 +47,14 @@ export async function enrichMoviesWithAI(movies) {
     );
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
+    let content = data.choices[0].message.content;
+    content = content.replace(/```json/g, "").replace(/```/g, "").trim();
     const parsed = JSON.parse(content);
 
     const enrichedResult = movies.map((movie)=>{
         const enriched = parsed.enriched.find(
-            (e) => e.title.toLowerCase() === movie.title.toLowerCase()
+            (e) => e.title.toLowerCase().includes(movie.title.toLowerCase()) || 
+           movie.title.toLowerCase().includes(e.title.toLowerCase())
         );
         return {...movie, ai_enriched:enriched || null}
     });

@@ -22,6 +22,11 @@ export function getMovieById(req, res) {
   sendSuccess(res, movie);
 }
 
+export function getRandomMovie(req,res){
+  const randomMovies = moviesService.getRandomMovies(1);
+  sendSuccess(res, randomMovies[0]);
+}
+
 export async function discoverMovies(req, res) {
   try {
     const count = parseInt(req.query.count) || 10;
@@ -38,4 +43,23 @@ export async function discoverMovies(req, res) {
       .status(500)
       .json({ success: false, error: "Error al obtener recomendaciones" });
   }
+}
+export function createMovie(req, res){
+  try{
+  const{ title, year, genre, director, rating} = req.body;
+// Valiodación básica de campos
+  if(!title|| !year|| !genre || !director || !rating){
+    return sendError(res, 400, "Faltan campos obligatorios: title, year, genre, director, rating")
+  }
+  const newMovie= moviesService.createMovie({title, year, genre, director, rating})
+  // 201(created)
+  res.status(201).json({
+    success: true,
+    message: "Pelicula creada con éxito",
+    data: newMovie
+  })
+} catch(error) {
+// acá se captura el error 'Ya existe'
+sendError(res,409, error.message); // status Conflict
+}
 }
