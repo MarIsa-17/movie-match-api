@@ -1,37 +1,45 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = "google/gemini-2.0-flash-exp:free";
+const MODEL = "meta-llama/llama-3.2-3b-instruct:free";
 
 const cache = new Map();
 
-const systemPrompt =
-  "Eres un experto en cine. Responde SIEMPRE en español neutro. Devuelve ÚNICAMENTE JSON válido. No incluyas texto adicional.";
+const systemPrompt = `
+Eres un experto en cine.
+Respondes SIEMPRE en español neutro.
+Devuelve EXCLUSIVAMENTE un objeto JSON válido.
+NO incluyas texto adicional.
+NO uses markdown.
+`;
 
 function buildPrompt(movies) {
-  const movieList = movies
-    .map((m) => `- "${m.title}" (${m.year})`)
-    .join("\n");
+  const list = movies.map((m) => `"${m.title}" (${m.year})`).join(", ");
 
   return `
-Genera anécdota, trivia, cita famosa y pitch de venta PARA CADA PELÍCULA.
-Responde TODO EN ESPAÑOL.
-${movieList}
+Genera una anécdota, trivia, cita famosa y pitch de venta
+PARA CADA UNA de estas películas:
 
-Responde SOLO con este formato JSON exacto:
+${list}
+
+Formato JSON EXACTO:
 {
   "enriched": [
     {
-      "title": "...",
-      "anecdote": "...",
-      "trivia": "...",
-      "famous_quote": "...",
-      "pitch": "..."
+      "title": "",
+      "anecdote": "",
+      "trivia": "",
+      "famous_quote": "",
+      "pitch": ""
     }
   ]
 }
+
+NO escribas nada fuera del JSON.
 `;
 }
- //Extrae el PRIMER objeto JSON válido encontrado en un texto
 
+// =======================
+// UTILS
+// =======================
 function extractJSON(text) {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) {
@@ -41,20 +49,18 @@ function extractJSON(text) {
 }
 
 export async function enrichMoviesWithAI(movies) {
-  // 🔒 Si no hay API key, no rompemos la app
   if (!OPENROUTER_API_KEY) {
     return movies.map((m) => ({ ...m, ai_enriched: null }));
   }
 
-  // 🔑 Clave de caché por títulos
-  const movieTitlesKey = movies
+  const cacheKey = movies
     .map((m) => m.title)
     .sort()
     .join("|");
 
   // ⚡ Cache
-  if (cache.has(movieTitlesKey)) {
-    const cached = cache.get(movieTitlesKey);
+  if (cache.has(cacheKey)) {
+    const cached = cache.get(cacheKey);
     if (cached.every((m) => m.ai_enriched !== null)) {
       console.log("🎬 IA cargada desde caché");
       return cached;
@@ -71,6 +77,8 @@ export async function enrichMoviesWithAI(movies) {
         headers: {
           Authorization: `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "Movie Match API",
         },
         body: JSON.stringify({
           model: MODEL,
@@ -78,52 +86,42 @@ export async function enrichMoviesWithAI(movies) {
             { role: "system", content: systemPrompt },
             { role: "user", content: buildPrompt(movies) },
           ],
-          temperature: 0.7
+          temperature: 0.6,
         }),
-      }
+      },
     );
 
     const data = await response.json();
 
     if (data.error) {
-      console.error("🔴 Error OpenRouter:", data.error.message);
       throw new Error(data.error.message);
     }
 
-    if (!data.choices || data.choices.length === 0) {
-      throw new Error("La IA no devolvió respuestas");
-    }
-
-    rawContent = data.choices[0]?.message?.content;
-
+    rawContent = data.choices?.[0]?.message?.content;
     if (!rawContent) {
-      throw new Error("Contenido de IA vacío");
+      throw new Error("Contenido vacío de IA");
     }
 
-    // 🧠 Parseo seguro
     const parsed = extractJSON(rawContent);
 
     if (!Array.isArray(parsed.enriched)) {
-      throw new Error("Formato IA inválido: enriched no es un array");
+      throw new Error("Formato inválido: enriched no es array");
     }
 
-    // por índice 
     const enrichedResult = movies.map((movie, index) => ({
       ...movie,
       ai_enriched: parsed.enriched[index] || null,
     }));
 
-    // Cachear solo si todas se enriquecieron
     if (enrichedResult.every((m) => m.ai_enriched !== null)) {
-      cache.set(movieTitlesKey, enrichedResult);
+      cache.set(cacheKey, enrichedResult);
     }
 
     return enrichedResult;
   } catch (error) {
     console.error("❌ Error IA:", error.message);
-    console.error("🧠 Respuesta cruda IA:", rawContent);
+    console.error("🧠 Respuesta cruda:", rawContent);
 
-    // 🔁 Fallback seguro
     return movies.map((m) => ({
       ...m,
       ai_enriched: {

@@ -3,7 +3,11 @@ import { enrichMoviesWithAI } from "../services/aiService.js";
 
 const sendSuccess = (res, data) => {
   const dataArray = Array.isArray(data) ? data : [data];
-  res.json({ success: true, data: dataArray, count: dataArray.length });
+  res.json({ 
+    success: true, 
+    data: dataArray, 
+    count: dataArray.length 
+  });
 };
 
 const sendError = (res, status, message) => {
@@ -24,26 +28,27 @@ export function getMovieById(req, res) {
 
 export function getRandomMovie(req,res){
   const randomMovies = moviesService.getRandomMovies(1);
-  sendSuccess(res, randomMovies[0]);
+  sendSuccess(res, randomMovies);
 }
 
 export async function discoverMovies(req, res) {
   try {
-    const count = parseInt(req.query.count) || 10;
+    const count = Number(req.query.count) || 1;
 
-    const randomMovies = moviesService.getRandomMovies(count);
-    const enrichedMovies = await enrichMoviesWithAI(randomMovies);
+    const randomMovies = moviesService.getRandomMovies(count);// película random
+    const enrichedMovies = await enrichMoviesWithAI(randomMovies);//Enriquecer con IA (UNA sola vez)
     res.json({
       success: true,
       count: enrichedMovies.length,
       data: enrichedMovies,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, error: "Error al obtener recomendaciones" });
+    console.error("❌ Discover error:", error.message);
+    sendError(res, 500, "Error al obtener recomendaciones");
   }
 }
+
+
 export function createMovie(req, res){
   try{
   const{ title, year, genre, director, rating} = req.body;
