@@ -1,15 +1,15 @@
 import "dotenv/config";
 import express from "express";
-import moviesRouter from "./routes/movies.js";
+import moviesRouter from "./src/routes/movies.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 
 // importación de  middlewares custom
-import { logger } from "./middlewares/logger.js";
-import { notFound } from "./middlewares/notFound.js";
-import { errorHandler } from "./middlewares/errorHandler.js";
-import { responseTime } from "./middlewares/responseTime.js";
+import { logger } from "./src/middlewares/logger.js";
+import { notFound } from "./src/middlewares/notFound.js";
+import { errorHandler } from "./src/middlewares/errorHandler.js";
+import { responseTime } from "./src/middlewares/responseTime.js";
 
 //iniciar aplicación
 const app = express();
@@ -23,7 +23,7 @@ app.use(responseTime); // tiempo de respuesta
 
 // Cargar el archivo YAML
 // Tip: YAML.load() convierte YAML a objeto JavaScript
-const swaggerDoc = YAML.load("./docs/swagger.yaml");
+const swaggerDoc = YAML.load("./src/docs/swagger.yaml");
 
 //===== RUTAS
 app.get("/", (req, res) => {

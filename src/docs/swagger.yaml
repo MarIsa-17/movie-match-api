@@ -1,0 +1,119 @@
+# docs/swagger.yaml
+openapi: 3.0.0
+info:
+  title: Movie Match API
+  version: 1.0.0
+  description: API de películas con IA integrada
+
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo local
+  - url: https://movie-match-api-cctn.onrender.com
+    description: Producción en render
+
+paths:
+  /movies:
+    get:
+      summary: Obtener todas las películas
+      description: Retorna lista de películas con filtros opcionales
+      parameters:
+        # Documenta el parámetro "genre"
+        - name: genre
+          in: query
+          schema:
+            type: string
+          description: Filtrar por género
+        # Documenta el parámetro "minRating"
+        - name: minRating
+          in: query
+          schema:
+            type: number
+          description: Rating mínimo
+        # Documenta el parámetro "year"
+        - name: year
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por año de estreno
+        # Documenta el parámetro "director"
+        - name: director
+          in: query
+          schema:
+            type: string
+          description: Filtrar por nombre del director
+
+      responses:
+        "200":
+          description: Lista de películas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                  count:
+                    type: integer
+    post:
+      summary: Crear nueva película
+      description: Añade una nueva película a la base de datos (simulado)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - year
+                - genre
+                - director
+                - rating
+              properties:
+                title:
+                  type: string
+                  example: "Superbad"
+                year:
+                  type: integer
+                  example: 2007
+                genre:
+                  type: string
+                  example: "Comedy"
+                director:
+                  type: string
+                  example: "Greg Mottola"
+                rating:
+                  type: number
+                  example: 7.6
+      responses:
+        "201":
+          description: Película creada exitosamente
+        "400":
+          description: Datos de entrada inválidos
+             
+
+  /movies/{id}:
+    get:
+      summary: Obtener película por ID
+      parameters:
+        # Documenta el parámetro de ruta "id"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Película encontrada
+        "404":
+          description: Película no encontrada
+
+  /movies/discover:
+    get:
+      summary: Descubrir películas con IA
+      description: Retorna películas enriquecidas con anécdotas y datos curiosos
+      responses:
+        "200":
+          description: Películas con contenido de IA
