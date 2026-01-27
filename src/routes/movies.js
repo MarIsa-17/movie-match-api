@@ -10,6 +10,7 @@ router.get("/discover", moviesController.discoverMovies);// IA
 router.get("/random", moviesController.getRandomMovie); // random
 
 // ---- Rutas dinámicas (AL FINAL)
+router.get("/stats", moviesController.getStats)
 router.get("/:id", moviesController.getMovieById); // ID dinámico
 router.post("/",moviesController.createMovie); // Ruta post (crear una película nueva)
 

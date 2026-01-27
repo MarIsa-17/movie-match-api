@@ -1,5 +1,5 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = "meta-llama/llama-3.2-3b-instruct:free";
+const MODEL = "google/gemini-2.0-flash-exp:free";
 
 const cache = new Map();
 
@@ -12,40 +12,46 @@ NO uses markdown.
 `;
 
 function buildPrompt(movies) {
-  const list = movies.map((m) => `"${m.title}" (${m.year})`).join(", ");
+  const list = movies
+    .map((m) => `"${m.title}" (Director: ${m.director})`)
+    .join(", ");
 
-  return `
-Genera una anécdota, trivia, cita famosa y pitch de venta
-PARA CADA UNA de estas películas:
-
-${list}
-
-Formato JSON EXACTO:
-{
-  "enriched": [
-    {
-      "title": "",
-      "anecdote": "",
-      "trivia": "",
-      "famous_quote": "",
-      "pitch": ""
-    }
-  ]
-}
-
-NO escribas nada fuera del JSON.
-`;
+  return `Genera datos para estas películas: ${list}.
+  Responde ÚNICAMENTE con este formato JSON:
+  {
+    "enriched": [
+      {
+        "title": "Nombre de la película",
+        "anecdote": "Breve anécdota",
+        "trivia": "Dato curioso",
+        "famous_quote": "Frase icónica",
+        "pitch": "Resumen rápido"
+      }
+    ]
+  }`;
 }
 
 // =======================
 // UTILS
 // =======================
 function extractJSON(text) {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) {
-    throw new Error("No se encontró JSON en la respuesta de la IA");
+  try {
+    // Elimina bloques de código markdown y espacios en blanco
+    const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    // Busca el primer '{' y el último '}'
+    const start = cleanText.indexOf('{');
+    const end = cleanText.lastIndexOf('}');
+    
+    if (start === -1 || end === -1) {
+      throw new Error("No se encontró un objeto JSON válido");
+    }
+
+    const jsonString = cleanText.substring(start, end + 1);
+    return JSON.parse(jsonString);
+  } catch (e) {
+    throw new Error("Error al procesar JSON de la IA: " + e.message);
   }
-  return JSON.parse(match[0]);
 }
 
 export async function enrichMoviesWithAI(movies) {
@@ -70,28 +76,30 @@ export async function enrichMoviesWithAI(movies) {
   let rawContent = "";
 
   try {
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
-          "X-Title": "Movie Match API",
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: buildPrompt(movies) },
-          ],
-          temperature: 0.6,
-        }),
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENROUTER_API_KEY.trim()}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:3000", // Requerido por OpenRouter
+        "X-Title": "Movie Match API",
       },
-    );
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: buildPrompt(movies) },
+        ],
+        temperature: 0.5,
+      }),
+    });
 
     const data = await response.json();
+    
+    // Si la respuesta no es OK (200), lanzamos el error específico de la API
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Error API: ${response.status}`);
+    }
 
     if (data.error) {
       throw new Error(data.error.message);

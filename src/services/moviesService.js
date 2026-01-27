@@ -53,6 +53,17 @@ export async function getMovieById(id) {
   });
 }
 
+export async function getRandomMovies(count = 1) {
+  // Obtenemos el total de películas para calcular un salto aleatorio
+  const totalMovies = await prisma.movie.count();
+  const randomSkip = Math.floor(Math.random() * Math.max(0, totalMovies - count));
+
+  return await prisma.movie.findMany({
+    take: count,
+    skip: randomSkip,
+  });
+}
+
 // POST create movie
 export async function createMovie(data) {
   return await prisma.movie.create({
@@ -91,3 +102,5 @@ export async function deleteMovie(id) {
     where: { id: parseInt(id) }
   });
 }
+
+

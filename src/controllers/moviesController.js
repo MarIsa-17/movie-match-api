@@ -16,23 +16,20 @@ const sendError = (res, status, message) => {
 };
 
 export async function getMovies(req, res) {
-  try {
-    // 1. Extraemos los filtros de la URL
+    // Extraemos los filtros de la URL y el ordenamiento
     const filters = {
       genre: req.query.genre,
       year: req.query.year,
       minRating: req.query.minRating,
-      director: req.query.director // Agregado 
+      director: req.query.director, // Agregado 
+      search: req.query.search, // busqueda
     };
 
-    // 2. Pasamos los filtros al servicio
-    const movies = await moviesService.getAllMovies(filters); 
+    // Pasamos los filtros al servicio
+    const movies = await moviesService.getAllMovies(filters,req.query.orderBy); 
     // sendSuccess =  respuesta tenga { success, data, count }
     sendSuccess(res, movies);
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-}
+  } 
 
 export function getGenres(req, res) {
   const genres = moviesService.getGenres(); // Devuelve los géneros permitidos ['ACTION', 'COMEDY'...]
@@ -59,8 +56,12 @@ export async function discoverMovies(req, res) {
   try {
     const count = Number(req.query.count) || 1;
 
-    const randomMovies = moviesService.getRandomMovies(count);// película random
-    const enrichedMovies = await enrichMoviesWithAI(randomMovies);//Enriquecer con IA (UNA sola vez)
+    // AGREGAR 'await' AQUÍ
+    const randomMovies = await moviesService.getRandomMovies(count); 
+    
+    // Enriquecer con IA
+    const enrichedMovies = await enrichMoviesWithAI(randomMovies);
+    
     res.json({
       success: true,
       count: enrichedMovies.length,
@@ -68,7 +69,7 @@ export async function discoverMovies(req, res) {
     });
   } catch (error) {
     console.error("❌ Discover error:", error.message);
-    sendError(res, 500, "Error al obtener recomendaciones");
+    res.status(500).json({ success: false, error: "Error al obtener recomendaciones" });
   }
 }
 
@@ -89,6 +90,15 @@ export async function createMovie(req, res){
   try {
     const newMovie = await moviesService.createMovie(req.body);
     res.status(201).json({ success: true, data: newMovie });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function getStats(req, res) {
+  try {
+    const stats = await moviesService.getStatsByGenre();
+    res.json({ success: true, data: stats });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
