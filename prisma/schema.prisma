@@ -9,11 +9,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// NUEVO: Enum con géneros válidos
+enum Genre {
+  ACTION
+  COMEDY
+  DRAMA
+  HORROR
+  SCIFI
+  THRILLER
+}
+
 model Movie {
   id        Int      @id @default(autoincrement())
   title     String
   year      Int
-  genre     String
+  genre     Genre
   director  String
   rating    Float
   poster    String?

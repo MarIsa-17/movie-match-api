@@ -20,6 +20,27 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 export type Movie = $Result.DefaultSelection<Prisma.$MoviePayload>
 
 /**
+ * Enums
+ */
+export namespace $Enums {
+  export const Genre: {
+  ACTION: 'ACTION',
+  COMEDY: 'COMEDY',
+  DRAMA: 'DRAMA',
+  HORROR: 'HORROR',
+  SCIFI: 'SCIFI',
+  THRILLER: 'THRILLER'
+};
+
+export type Genre = (typeof Genre)[keyof typeof Genre]
+
+}
+
+export type Genre = $Enums.Genre
+
+export const Genre: typeof $Enums.Genre
+
+/**
  * ##  Prisma Client ʲˢ
  * 
  * Type-safe database client for TypeScript & Node.js
@@ -870,7 +891,7 @@ export namespace Prisma {
     id: number | null
     title: string | null
     year: number | null
-    genre: string | null
+    genre: $Enums.Genre | null
     director: string | null
     rating: number | null
     poster: string | null
@@ -882,7 +903,7 @@ export namespace Prisma {
     id: number | null
     title: string | null
     year: number | null
-    genre: string | null
+    genre: $Enums.Genre | null
     director: string | null
     rating: number | null
     poster: string | null
@@ -1043,7 +1064,7 @@ export namespace Prisma {
     id: number
     title: string
     year: number
-    genre: string
+    genre: $Enums.Genre
     director: string
     rating: number
     poster: string | null
@@ -1114,7 +1135,7 @@ export namespace Prisma {
       id: number
       title: string
       year: number
-      genre: string
+      genre: $Enums.Genre
       director: string
       rating: number
       poster: string | null
@@ -1516,7 +1537,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Movie", 'Int'>
     readonly title: FieldRef<"Movie", 'String'>
     readonly year: FieldRef<"Movie", 'Int'>
-    readonly genre: FieldRef<"Movie", 'String'>
+    readonly genre: FieldRef<"Movie", 'Genre'>
     readonly director: FieldRef<"Movie", 'String'>
     readonly rating: FieldRef<"Movie", 'Float'>
     readonly poster: FieldRef<"Movie", 'String'>
@@ -1897,6 +1918,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Genre'
+   */
+  export type EnumGenreFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Genre'>
+    
+
+
+  /**
+   * Reference to a field of type 'Genre[]'
+   */
+  export type ListEnumGenreFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Genre[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1934,7 +1969,7 @@ export namespace Prisma {
     id?: IntFilter<"Movie"> | number
     title?: StringFilter<"Movie"> | string
     year?: IntFilter<"Movie"> | number
-    genre?: StringFilter<"Movie"> | string
+    genre?: EnumGenreFilter<"Movie"> | $Enums.Genre
     director?: StringFilter<"Movie"> | string
     rating?: FloatFilter<"Movie"> | number
     poster?: StringNullableFilter<"Movie"> | string | null
@@ -1961,7 +1996,7 @@ export namespace Prisma {
     NOT?: MovieWhereInput | MovieWhereInput[]
     title?: StringFilter<"Movie"> | string
     year?: IntFilter<"Movie"> | number
-    genre?: StringFilter<"Movie"> | string
+    genre?: EnumGenreFilter<"Movie"> | $Enums.Genre
     director?: StringFilter<"Movie"> | string
     rating?: FloatFilter<"Movie"> | number
     poster?: StringNullableFilter<"Movie"> | string | null
@@ -1993,7 +2028,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"Movie"> | number
     title?: StringWithAggregatesFilter<"Movie"> | string
     year?: IntWithAggregatesFilter<"Movie"> | number
-    genre?: StringWithAggregatesFilter<"Movie"> | string
+    genre?: EnumGenreWithAggregatesFilter<"Movie"> | $Enums.Genre
     director?: StringWithAggregatesFilter<"Movie"> | string
     rating?: FloatWithAggregatesFilter<"Movie"> | number
     poster?: StringNullableWithAggregatesFilter<"Movie"> | string | null
@@ -2004,7 +2039,7 @@ export namespace Prisma {
   export type MovieCreateInput = {
     title: string
     year: number
-    genre: string
+    genre: $Enums.Genre
     director: string
     rating: number
     poster?: string | null
@@ -2016,7 +2051,7 @@ export namespace Prisma {
     id?: number
     title: string
     year: number
-    genre: string
+    genre: $Enums.Genre
     director: string
     rating: number
     poster?: string | null
@@ -2027,7 +2062,7 @@ export namespace Prisma {
   export type MovieUpdateInput = {
     title?: StringFieldUpdateOperationsInput | string
     year?: IntFieldUpdateOperationsInput | number
-    genre?: StringFieldUpdateOperationsInput | string
+    genre?: EnumGenreFieldUpdateOperationsInput | $Enums.Genre
     director?: StringFieldUpdateOperationsInput | string
     rating?: FloatFieldUpdateOperationsInput | number
     poster?: NullableStringFieldUpdateOperationsInput | string | null
@@ -2039,7 +2074,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     year?: IntFieldUpdateOperationsInput | number
-    genre?: StringFieldUpdateOperationsInput | string
+    genre?: EnumGenreFieldUpdateOperationsInput | $Enums.Genre
     director?: StringFieldUpdateOperationsInput | string
     rating?: FloatFieldUpdateOperationsInput | number
     poster?: NullableStringFieldUpdateOperationsInput | string | null
@@ -2051,7 +2086,7 @@ export namespace Prisma {
     id?: number
     title: string
     year: number
-    genre: string
+    genre: $Enums.Genre
     director: string
     rating: number
     poster?: string | null
@@ -2062,7 +2097,7 @@ export namespace Prisma {
   export type MovieUpdateManyMutationInput = {
     title?: StringFieldUpdateOperationsInput | string
     year?: IntFieldUpdateOperationsInput | number
-    genre?: StringFieldUpdateOperationsInput | string
+    genre?: EnumGenreFieldUpdateOperationsInput | $Enums.Genre
     director?: StringFieldUpdateOperationsInput | string
     rating?: FloatFieldUpdateOperationsInput | number
     poster?: NullableStringFieldUpdateOperationsInput | string | null
@@ -2074,7 +2109,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     title?: StringFieldUpdateOperationsInput | string
     year?: IntFieldUpdateOperationsInput | number
-    genre?: StringFieldUpdateOperationsInput | string
+    genre?: EnumGenreFieldUpdateOperationsInput | $Enums.Genre
     director?: StringFieldUpdateOperationsInput | string
     rating?: FloatFieldUpdateOperationsInput | number
     poster?: NullableStringFieldUpdateOperationsInput | string | null
@@ -2106,6 +2141,13 @@ export namespace Prisma {
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
     not?: NestedStringFilter<$PrismaModel> | string
+  }
+
+  export type EnumGenreFilter<$PrismaModel = never> = {
+    equals?: $Enums.Genre | EnumGenreFieldRefInput<$PrismaModel>
+    in?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    not?: NestedEnumGenreFilter<$PrismaModel> | $Enums.Genre
   }
 
   export type FloatFilter<$PrismaModel = never> = {
@@ -2232,6 +2274,16 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
+  export type EnumGenreWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Genre | EnumGenreFieldRefInput<$PrismaModel>
+    in?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    not?: NestedEnumGenreWithAggregatesFilter<$PrismaModel> | $Enums.Genre
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumGenreFilter<$PrismaModel>
+    _max?: NestedEnumGenreFilter<$PrismaModel>
+  }
+
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
     in?: number[] | ListFloatFieldRefInput<$PrismaModel>
@@ -2292,6 +2344,10 @@ export namespace Prisma {
     divide?: number
   }
 
+  export type EnumGenreFieldUpdateOperationsInput = {
+    set?: $Enums.Genre
+  }
+
   export type FloatFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -2331,6 +2387,13 @@ export namespace Prisma {
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     not?: NestedStringFilter<$PrismaModel> | string
+  }
+
+  export type NestedEnumGenreFilter<$PrismaModel = never> = {
+    equals?: $Enums.Genre | EnumGenreFieldRefInput<$PrismaModel>
+    in?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    not?: NestedEnumGenreFilter<$PrismaModel> | $Enums.Genre
   }
 
   export type NestedFloatFilter<$PrismaModel = never> = {
@@ -2400,6 +2463,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
+  }
+
+  export type NestedEnumGenreWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.Genre | EnumGenreFieldRefInput<$PrismaModel>
+    in?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    notIn?: $Enums.Genre[] | ListEnumGenreFieldRefInput<$PrismaModel>
+    not?: NestedEnumGenreWithAggregatesFilter<$PrismaModel> | $Enums.Genre
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumGenreFilter<$PrismaModel>
+    _max?: NestedEnumGenreFilter<$PrismaModel>
   }
 
   export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {

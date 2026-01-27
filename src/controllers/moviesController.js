@@ -1,6 +1,7 @@
 import * as moviesService from "../services/moviesService.js";
 import { enrichMoviesWithAI } from "../services/aiService.js";
 
+
 const sendSuccess = (res, data) => {
   const dataArray = Array.isArray(data) ? data : [data];
   res.json({ 
@@ -14,22 +15,32 @@ const sendError = (res, status, message) => {
   res.status(status).json({ success: false, error: message });
 };
 
-export async function getAll(req, res) {
+export async function getMovies(req, res) {
   try {
-    const movies = await moviesService.getAllMovies();
-    res.json({ success: true, data: movies });
+    // 1. Extraemos los filtros de la URL
+    const filters = {
+      genre: req.query.genre,
+      year: req.query.year,
+      minRating: req.query.minRating,
+      director: req.query.director // Agregado 
+    };
+
+    // 2. Pasamos los filtros al servicio
+    const movies = await moviesService.getAllMovies(filters); 
+    // sendSuccess =  respuesta tenga { success, data, count }
+    sendSuccess(res, movies);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 }
 
-export async function getMovies(req, res) {
-  try {
-    const movies = await moviesService.getAllMovies(); 
-    sendSuccess(res, movies);
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+export function getGenres(req, res) {
+  const genres = moviesService.getGenres(); // Devuelve los géneros permitidos ['ACTION', 'COMEDY'...]
+  res.json({ 
+    success: true, 
+    data: genres, 
+    count: genres.length 
+  });
 }
 
 export function getMovieById(req, res) {
@@ -62,22 +73,24 @@ export async function discoverMovies(req, res) {
 }
 
 
-export function createMovie(req, res){
-  try{
-  const{ title, year, genre, director, rating} = req.body;
-// Valiodación básica de campos
-  if(!title|| !year|| !genre || !director || !rating){
-    return sendError(res, 400, "Faltan campos obligatorios: title, year, genre, director, rating")
+export async function createMovie(req, res){
+  const { title, year, rating, genre, director } = req.body;
+
+  // ----------------- Lista de géneros permitidos (debe ser igual a tu enum) -------------------
+  const permiGenres = ['ACTION', 'COMEDY', 'DRAMA', 'HORROR', 'SCIFI', 'THRILLER'];
+
+  if (!permiGenres.includes(genre)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: `Género no válido. Los permitidos son: ${permiGenres.join(', ')}` 
+    });
   }
-  const newMovie= moviesService.createMovie({title, year, genre, director, rating})
-  // 201(created)
-  res.status(201).json({
-    success: true,
-    message: "Pelicula creada con éxito",
-    data: newMovie
-  })
-} catch(error) {
-// acá se captura el error 'Ya existe'
-sendError(res,409, error.message); // status Conflict
+
+  try {
+    const newMovie = await moviesService.createMovie(req.body);
+    res.status(201).json({ success: true, data: newMovie });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 }
-}
+
