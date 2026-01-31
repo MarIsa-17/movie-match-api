@@ -4,6 +4,7 @@ import moviesRouter from "./src/routes/movies.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
+import reviewRouter from "./src/routes/reviewRouter.js"
 
 // importación de  middlewares custom
 import { logger } from "./src/middlewares/logger.js";
@@ -66,6 +67,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/movies", moviesRouter);
+app.use(reviewRouter);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 

@@ -1,4 +1,3 @@
-# docs/swagger.yaml
 openapi: 3.0.0
 info:
   title: Movie Match API
@@ -6,16 +5,81 @@ info:
   description: API de películas con IA integrada
 
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3001
     description: Desarrollo local
   - url: https://movie-match-api-cctn.onrender.com
-    description: Producción en render
+    description: Producción
+
+tags:
+  - name: Movies
+    description: Operaciones relacionadas con películas
+  - name: AI
+    description: Endpoints enriquecidos con IA
+  - name: Reviews
+    description: Operaciones de reviews/reseñas
 
 paths:
   /movies:
+    post:
+      summary: Crear una nueva película en la base de datos
+      description: Crea una nueva película en PostgreSQL usando Prisma
+      tags:
+        - Movies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - year
+                - genre
+                - rating
+              properties:
+                title:
+                  type: string
+                  example: "Parasite"
+                  description: Título de la película (requerido)
+                year:
+                  type: integer
+                  example: 2019
+                  description: Año de estreno (1888 - actualidad+5)
+                genre:
+                  type: string
+                  example: "Thriller"
+                  description: Género de la película (debe ser un valor válido del enum)
+                rating:
+                  type: number
+                  example: 8.6
+                  description: Puntuación de 0 a 10
+                poster:
+                  type: string
+                  example: "https://example.com/poster.jpg"
+                  description: URL del póster (opcional)
+      responses:
+        '201':
+          description: Película creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movie'
+                  count:
+                    type: integer
+        '400':
+          description: Error de validación
     get:
       summary: Obtener todas las películas
-      description: Retorna lista de películas con filtros opcionales
+      description: Retorna lista de películas desde PostgreSQL usando Prisma, con filtros opcionales
+      tags:
+        - Movies
       parameters:
         # Documenta el parámetro "genre"
         - name: genre
@@ -29,21 +93,8 @@ paths:
           schema:
             type: number
           description: Rating mínimo
-        # Documenta el parámetro "year"
-        - name: year
-          in: query
-          schema:
-            type: integer
-          description: Filtrar por año de estreno
-        # Documenta el parámetro "director"
-        - name: director
-          in: query
-          schema:
-            type: string
-          description: Filtrar por nombre del director
-
       responses:
-        "200":
+        '200':
           description: Lista de películas
           content:
             application/json:
@@ -54,49 +105,40 @@ paths:
                     type: boolean
                   data:
                     type: array
+                    items:
+                      $ref: '#/components/schemas/Movie'
                   count:
                     type: integer
-    post:
-      summary: Crear nueva película
-      description: Añade una nueva película a la base de datos (simulado)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - title
-                - year
-                - genre
-                - director
-                - rating
-              properties:
-                title:
-                  type: string
-                  example: "Superbad"
-                year:
-                  type: integer
-                  example: 2007
-                genre:
-                  type: string
-                  example: "Comedy"
-                director:
-                  type: string
-                  example: "Greg Mottola"
-                rating:
-                  type: number
-                  example: 7.6
+
+  /movies/random:
+    get:
+      summary: Obtener una película aleatoria
+      description: Retorna una película aleatoria del array en memoria (data/movies.js)
+      tags:
+        - Movies
       responses:
-        "201":
-          description: Película creada exitosamente
-        "400":
-          description: Datos de entrada inválidos
-             
+        '200':
+          description: Película aleatoria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movie'
+                  count:
+                    type: integer
 
   /movies/{id}:
     get:
       summary: Obtener película por ID
+      description: Obtiene una película específica desde PostgreSQL usando Prisma, incluyendo sus reviews asociadas
+      tags:
+        - Movies
       parameters:
         # Documenta el parámetro de ruta "id"
         - name: id
@@ -104,16 +146,225 @@ paths:
           required: true
           schema:
             type: integer
+          description: ID de la película
       responses:
-        "200":
+        '200':
           description: Película encontrada
-        "404":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Movie'
+                        - type: object
+                          properties:
+                            reviews:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/Review'
+                  count:
+                    type: integer
+        '404':
           description: Película no encontrada
 
   /movies/discover:
     get:
       summary: Descubrir películas con IA
-      description: Retorna películas enriquecidas con anécdotas y datos curiosos
+      description: Retorna una película aleatoria del array en memoria enriquecida con anécdotas y datos curiosos generados por IA via OpenRouter
+      tags:
+        - Movies
+        - AI
+      responses:
+        '200':
+          description: Película con contenido enriquecido por IA
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      movie:
+                        $ref: '#/components/schemas/Movie'
+                      anecdote:
+                        type: string
+                        description: Anécdota curiosa generada por IA
+                      funFact:
+                        type: string
+                        description: Dato curioso generado por IA
+        '500':
+          description: Error al generar contenido con IA
+
+  /movies/{movieId}/reviews:
+    get:
+      summary: Obtener reviews de una película
+      description: Obtiene todas las reviews de una película específica desde PostgreSQL usando Prisma
+      tags:
+        - Reviews
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la película
+      responses:
+        '200':
+          description: Lista de reviews de la película
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+        '500':
+          description: Error del servidor
+
+    post:
+      summary: Crear una nueva review para una película
+      description: Crea una nueva review asociada a una película específica en PostgreSQL usando Prisma
+      tags:
+        - Reviews
+      parameters:
+        - name: movieId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID de la película
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - author
+                - content
+                - rating
+              properties:
+                author:
+                  type: string
+                  example: "John Doe"
+                  description: Nombre del autor de la reseña (requerido, no se permiten reseñas anónimas)
+                content:
+                  type: string
+                  example: "Una película increíble con un guion fascinante"
+                  description: Contenido de la reseña (requerido)
+                rating:
+                  type: integer
+                  example: 9
+                  description: Puntuación de la película (requerido)
+      responses:
+        '201':
+          description: Review creada exitosamente
+          tags:
+            - Reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '404':
+          description: Película no encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+                    example: "Película no encontrada"
+        '500':
+          description: Error del servidor
+    delete:
+      summary: Eliminar una reseña
+      description: Elimina de forma permanente una reseña de la base de datos usando su ID único
+      tags:
+        - Reviews 
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único de la reseña a eliminar
       responses:
         "200":
-          description: Películas con contenido de IA
+          description: Reseña eliminada correctamente
+        "404":
+          description: No se encontró una reseña con ese ID
+        "500":
+          description: Error interno del servidor     
+
+components:
+  schemas:
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Inception"
+        year:
+          type: integer
+          example: 2010
+        rating:
+          type: number
+          example: 8.8
+        poster:
+          type: string
+          nullable: true
+          example: "https://example.com/poster.jpg"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        movieId:
+          type: integer
+          example: 1
+        author:
+          type: string
+          example: "John Doe"
+        content:
+          type: string
+          example: "Great movie with mind-bending concepts!"
+        rating:
+          type: integer
+          example: 9
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
