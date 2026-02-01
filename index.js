@@ -4,7 +4,7 @@ import moviesRouter from "./src/routes/movies.js";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
-import reviewRouter from "./src/routes/reviewRouter.js"
+import reviewRouter from "./src/routes/reviewRouter.js";
 
 // importación de  middlewares custom
 import { logger } from "./src/middlewares/logger.js";
@@ -17,7 +17,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // cargar los  MIDDLEWARES GLOBALES (ANTES de rutas)
-app.use(cors()); // Permite requests de otros dominios
+app.use(cors()); // Permite requests de otros dominios Swagger
 app.use(express.json()); // Parsea JSON en body de requests
 app.use(logger); // Tu middleware de logging
 app.use(responseTime); // tiempo de respuesta

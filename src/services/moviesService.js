@@ -42,20 +42,22 @@ export async function getAllMovies(filters = {}, orderBy='createdAt') {
 
   return await prisma.movie.findMany({
     where,
+    include: {
+      _count:{ select:{reviews:true}}
+    },
     orderBy:orderConfig[orderBy] || orderConfig.createdAt
   });
 }
 
 // GET movie by ID
 export async function getMovieById(id) {
-  return await prisma.movie.findUnique({
+  const movie = await prisma.movie.findUnique({
     where: { id: parseInt(id) },
-    include:{
-      reviews:{
-        orderBy:{createdAt:'desc'}
-      }
+    include: {
+      reviews: { orderBy: { createdAt: 'desc' } }
     }
   });
+  return movie;
 }
 
 export async function getRandomMovies(count = 1) {

@@ -5,7 +5,7 @@ info:
   description: API de películas con IA integrada
 
 servers:
-  - url: http://localhost:3001
+  - url: http://localhost:3000
     description: Desarrollo local
   - url: https://movie-match-api-cctn.onrender.com
     description: Producción
@@ -20,11 +20,43 @@ tags:
 
 paths:
   /movies:
+    get:
+      summary: Obtener todas las películas
+      description: Retorna lista de películas desde PostgreSQL usando Prisma, con filtros opcionales
+      tags: [Movies]
+      parameters:
+        # Documenta el parámetro "genre"
+        - name: genre
+          in: query
+          schema:
+            type: string
+          description: Filtrar por género
+        # Documenta el parámetro "minRating"
+        - name: minRating
+          in: query
+          schema:
+            type: number
+          description: Rating mínimo
+      responses:
+        '200':
+          description: Lista de películas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movie'
+                  count:
+                    type: integer
     post:
       summary: Crear una nueva película en la base de datos
       description: Crea una nueva película en PostgreSQL usando Prisma
-      tags:
-        - Movies
+      tags: [Movies]
       requestBody:
         required: true
         content:
@@ -75,70 +107,11 @@ paths:
                     type: integer
         '400':
           description: Error de validación
-    get:
-      summary: Obtener todas las películas
-      description: Retorna lista de películas desde PostgreSQL usando Prisma, con filtros opcionales
-      tags:
-        - Movies
-      parameters:
-        # Documenta el parámetro "genre"
-        - name: genre
-          in: query
-          schema:
-            type: string
-          description: Filtrar por género
-        # Documenta el parámetro "minRating"
-        - name: minRating
-          in: query
-          schema:
-            type: number
-          description: Rating mínimo
-      responses:
-        '200':
-          description: Lista de películas
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Movie'
-                  count:
-                    type: integer
-
-  /movies/random:
-    get:
-      summary: Obtener una película aleatoria
-      description: Retorna una película aleatoria del array en memoria (data/movies.js)
-      tags:
-        - Movies
-      responses:
-        '200':
-          description: Película aleatoria
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Movie'
-                  count:
-                    type: integer
-
   /movies/{id}:
     get:
       summary: Obtener película por ID
       description: Obtiene una película específica desde PostgreSQL usando Prisma, incluyendo sus reviews asociadas
-      tags:
-        - Movies
+      tags: [Movies]
       parameters:
         # Documenta el parámetro de ruta "id"
         - name: id
@@ -172,14 +145,53 @@ paths:
                     type: integer
         '404':
           description: Película no encontrada
+    delete:
+      summary: Eliminar una película
+      description: Elimina de forma permanente una pelicula con sus reseñas en el caso las tenga de la base de datos usando su ID único
+      tags: [Movies]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único de la película a eliminar
+      responses:
+        "200":
+          description: Película eliminada correctamente
+        "404":
+          description: No se encontró una película con ese ID
+        "500":
+          description: Error interno del servidor  
+
+  /movies/random:
+    get:
+      summary: Obtener una película aleatoria
+      description: Retorna una película aleatoria del array en memoria (data/movies.js)
+      tags: [Movies]
+      responses:
+        '200':
+          description: Película aleatoria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movie'
+                  count:
+                    type: integer
+
 
   /movies/discover:
     get:
       summary: Descubrir películas con IA
       description: Retorna una película aleatoria del array en memoria enriquecida con anécdotas y datos curiosos generados por IA via OpenRouter
-      tags:
-        - Movies
-        - AI
+      tags: [AI]
       responses:
         '200':
           description: Película con contenido enriquecido por IA
@@ -203,13 +215,13 @@ paths:
                         description: Dato curioso generado por IA
         '500':
           description: Error al generar contenido con IA
+          
 
   /movies/{movieId}/reviews:
     get:
       summary: Obtener reviews de una película
       description: Obtiene todas las reviews de una película específica desde PostgreSQL usando Prisma
-      tags:
-        - Reviews
+      tags: [Reviews]
       parameters:
         - name: movieId
           in: path
@@ -237,8 +249,7 @@ paths:
     post:
       summary: Crear una nueva review para una película
       description: Crea una nueva review asociada a una película específica en PostgreSQL usando Prisma
-      tags:
-        - Reviews
+      tags: [Reviews]
       parameters:
         - name: movieId
           in: path
@@ -254,26 +265,26 @@ paths:
               type: object
               required:
                 - author
-                - content
+                - comment
                 - rating
               properties:
                 author:
                   type: string
                   example: "John Doe"
-                  description: Nombre del autor de la reseña (requerido, no se permiten reseñas anónimas)
-                content:
+                  description: Nombre del autor de la reseña
+                comment:
                   type: string
                   example: "Una película increíble con un guion fascinante"
-                  description: Contenido de la reseña (requerido)
+                  description: Contenido de la reseña
                 rating:
                   type: integer
-                  example: 9
-                  description: Puntuación de la película (requerido)
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                  description: Puntuación de la película (1 a 5 estrellas)
       responses:
         '201':
           description: Review creada exitosamente
-          tags:
-            - Reviews
           content:
             application/json:
               schema:
@@ -285,37 +296,22 @@ paths:
                     $ref: '#/components/schemas/Review'
         '404':
           description: Película no encontrada
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  error:
-                    type: string
-                    example: "Película no encontrada"
         '500':
           description: Error del servidor
+  
     delete:
-      summary: Eliminar una reseña
-      description: Elimina de forma permanente una reseña de la base de datos usando su ID único
-      tags:
-        - Reviews 
+      summary: Eliminar una reseña específica
+      tags: [Reviews]
       parameters:
         - name: reviewId
           in: path
           required: true
           schema:
             type: integer
-          description: ID único de la reseña a eliminar
+          description: ID de la reseña (no de la película)
       responses:
         "200":
-          description: Reseña eliminada correctamente
-        "404":
-          description: No se encontró una reseña con ese ID
-        "500":
-          description: Error interno del servidor     
+          description: Reseña eliminada con éxito    
 
 components:
   schemas:
@@ -356,7 +352,7 @@ components:
         author:
           type: string
           example: "John Doe"
-        content:
+        comment:
           type: string
           example: "Great movie with mind-bending concepts!"
         rating:

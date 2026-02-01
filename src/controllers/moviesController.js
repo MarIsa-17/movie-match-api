@@ -135,3 +135,24 @@ export async function getStats(req, res) {
   }
 }
 
+export async function remove(req, res) {
+  try {
+    const { id } = req.params; // Captura el ID de la URL
+    
+    // Validamos que el ID sea un número antes de llamar al servicio
+    if (isNaN(id)) {
+      return res.status(400).json({ success: false, error: "ID de película no válido" });
+    }
+
+    await moviesService.deleteMovie(id);
+    
+    res.json({ 
+      success: true, 
+      message: `Película con ID ${id} eliminada exitosamente junto con sus reseñas.` 
+    });
+  } catch (error) {
+    console.error("❌ Error al eliminar:", error.message);
+    res.status(404).json({ success: false, error: "La película no existe o ya fue eliminada" });
+  }
+}
+
