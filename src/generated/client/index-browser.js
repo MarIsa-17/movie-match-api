@@ -135,7 +135,8 @@ exports.Prisma.ReviewScalarFieldEnum = {
   author: 'author',
   rating: 'rating',
   comment: 'comment',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {

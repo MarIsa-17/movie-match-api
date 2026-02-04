@@ -135,6 +135,15 @@ export async function getStats(req, res) {
   }
 }
 
+export async function search(req, res) {
+  try {
+    const result = await moviesService.searchMovies(req.query);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 export async function remove(req, res) {
   try {
     const { id } = req.params; // Captura el ID de la URL
@@ -155,4 +164,65 @@ export async function remove(req, res) {
     res.status(404).json({ success: false, error: "La película no existe o ya fue eliminada" });
   }
 }
+// reportes y logros
 
+// Eliminar película con transacción
+export async function deleteAtomic(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await moviesService.deleteMovieWithReviews(id);
+    
+    res.json({
+      success: true,
+      message: "Eliminación atómica completada",
+      data: result
+    });
+  } catch (error) {
+    res.status(error.message === 'Película no encontrada' ? 404 : 500).json({
+      success: false,
+      error: error.message
+    });
+  }
+}
+
+// Obtener películas sin reviews 
+export async function getEmptyMovies(req, res) {
+  try {
+    const movies = await moviesService.getMoviesWithoutReviews();
+    res.json({
+      success: true,
+      count: movies.length,
+      data: movies
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// Obtener películas recientes 
+export async function getRecentMovies(req, res) {
+  try {
+    const movies = await moviesService.getRecentMovies();
+    res.json({
+      success: true,
+      count: movies.length,
+      data: movies
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+//  Exportar datos
+export async function exportData(req, res) {
+  try {
+    const data = await moviesService.exportData();
+    res.json({
+      success: true,
+      message: "Datos listos para exportar",
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+}

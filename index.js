@@ -11,6 +11,7 @@ import { logger } from "./src/middlewares/logger.js";
 import { notFound } from "./src/middlewares/notFound.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
 import { responseTime } from "./src/middlewares/responseTime.js";
+import statsRouter from "./src/routes/statsRoutes.js";
 
 //iniciar aplicación
 const app = express();
@@ -70,7 +71,7 @@ app.use("/movies", moviesRouter);
 app.use(reviewRouter);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
-
+app.use(statsRouter);
 // ===== MIDDLEWARES DE ERROR (DESPUÉS de rutas) =====
 // ¿Por qué después? Porque capturan lo que las rutas NO manejaron
 app.use(notFound); // Rutas no encontradas (404)

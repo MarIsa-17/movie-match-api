@@ -64,10 +64,19 @@ export async function getRandomMovies(count = 1) {
   // Obtenemos el total de películas para calcular un salto aleatorio
   const totalMovies = await prisma.movie.count();
   const randomSkip = Math.floor(Math.random() * Math.max(0, totalMovies - count));
-
+  
   return await prisma.movie.findMany({
     take: count,
     skip: randomSkip,
+  });
+}
+
+// traer películas sin reseña
+export async function getMoviesWithoutReviews() {
+  return await prisma.movie.findMany({
+    where: {
+      reviews: { none: {} } // Filtro: donde la lista de reseñas esté vacía
+    }
   });
 }
 
@@ -90,6 +99,19 @@ export function getGenres() {
   return ['ACTION', 'COMEDY', 'DRAMA', 'HORROR', 'SCIFI', 'THRILLER'];
 }
 
+// estrenos recientes
+export async function getRecentMovies() {
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  return await prisma.movie.findMany({
+    where: {
+      createdAt: { gte: weekAgo } // "Greater than or equal" (Mayor o igual a hace una semana)
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
 // PUT update movie
 export async function updateMovie(id, data) {
   return await prisma.movie.update({
@@ -103,6 +125,93 @@ export async function updateMovie(id, data) {
   });
 }
 
+export async function searchMovies(params) {
+  const { q, genre, yearMin, yearMax, ratingMin, page = 1, limit = 10 } = params;
+
+  // Construir filtros
+  const where = {
+    AND: []
+  };
+
+  // Búsqueda por título
+  if (q) {
+    where.AND.push({
+      title: { contains: q, mode: 'insensitive' }
+    });
+  }
+
+  // Filtro por género
+  if (genre) {
+    where.AND.push({ genre });
+  }
+
+  // Rango de años
+  if (yearMin || yearMax) {
+    const yearFilter = {};
+    if (yearMin) yearFilter.gte = parseInt(yearMin);
+    if (yearMax) yearFilter.lte = parseInt(yearMax);
+    where.AND.push({ year: yearFilter });
+  }
+
+  // Rating mínimo
+  if (ratingMin) {
+    where.AND.push({
+      rating: { gte: parseFloat(ratingMin) }
+    });
+  }
+
+  // Si no hay filtros, eliminar AND vacío
+  if (where.AND.length === 0) {
+    delete where.AND;
+  }
+
+  // Ejecutar consulta con paginación
+  const [movies, total] = await Promise.all([
+    prisma.movie.findMany({
+      where,
+      include: {
+        _count: { select: { reviews: true } }
+      },
+      orderBy: { rating: 'desc' },
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      take: parseInt(limit)
+    }),
+    prisma.movie.count({ where })
+  ]);
+
+  return {
+    data: movies,
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit))
+    }
+  };
+}
+
+//Exportar para análisis (Data Mining)
+export async function exportData() {
+  const movies = await prisma.movie.findMany({
+    include: {
+      _count: { select: { reviews: true } },
+      reviews: { select: { rating: true } }
+    }
+  });
+
+  return movies.map(m => ({
+    id: m.id,
+    title: m.title,
+    genre: m.genre,
+    currentRating: m.rating,
+    totalReviews: m._count.reviews,
+    // Calculamos un promedio real basado en las reseñas actuales
+    realAverage: m.reviews.length
+      ? (m.reviews.reduce((sum, r) => sum + r.rating, 0) / m.reviews.length).toFixed(2)
+      : "Sin reseñas"
+  }));
+}
+
 // DELETE movie
 export async function deleteMovie(id) {
   return await prisma.movie.delete({
@@ -110,4 +219,37 @@ export async function deleteMovie(id) {
   });
 }
 
+export async function deleteMovieWithReviews(id) {
+  const movieId = parseInt(id);
+
+  return await prisma.$transaction(async (tx) => {
+    // 1. Buscamos la película y contamos cuántas reseñas tiene antes de borrar
+    const movie = await tx.movie.findUnique({
+      where: { id: movieId },
+      include: { _count: { select: { reviews: true } } }
+    });
+
+    if (!movie) {
+      throw new Error('Película no encontrada');
+    }
+
+    const reviewCount = movie._count.reviews;
+
+    // 2. Eliminamos las reseñas asociadas (Paso explícito de la transacción)
+    await tx.review.deleteMany({
+      where: { movieId: movieId }
+    });
+
+    // 3. Eliminamos la película
+    await tx.movie.delete({
+      where: { id: movieId }
+    });
+
+    // 4. Devolvemos un reporte de lo que pasó
+    return {
+      deletedMovie: movie.title,
+      deletedReviewsCount: reviewCount
+    };
+  });
+}
 

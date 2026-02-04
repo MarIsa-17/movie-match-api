@@ -2048,6 +2048,7 @@ export namespace Prisma {
     rating: number | null
     comment: string | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type ReviewMaxAggregateOutputType = {
@@ -2057,6 +2058,7 @@ export namespace Prisma {
     rating: number | null
     comment: string | null
     createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type ReviewCountAggregateOutputType = {
@@ -2066,6 +2068,7 @@ export namespace Prisma {
     rating: number
     comment: number
     createdAt: number
+    updatedAt: number
     _all: number
   }
 
@@ -2089,6 +2092,7 @@ export namespace Prisma {
     rating?: true
     comment?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type ReviewMaxAggregateInputType = {
@@ -2098,6 +2102,7 @@ export namespace Prisma {
     rating?: true
     comment?: true
     createdAt?: true
+    updatedAt?: true
   }
 
   export type ReviewCountAggregateInputType = {
@@ -2107,6 +2112,7 @@ export namespace Prisma {
     rating?: true
     comment?: true
     createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -2203,6 +2209,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt: Date
+    updatedAt: Date
     _count: ReviewCountAggregateOutputType | null
     _avg: ReviewAvgAggregateOutputType | null
     _sum: ReviewSumAggregateOutputType | null
@@ -2231,6 +2238,7 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     movie?: boolean | MovieDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
@@ -2241,6 +2249,7 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
     movie?: boolean | MovieDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
@@ -2251,6 +2260,7 @@ export namespace Prisma {
     rating?: boolean
     comment?: boolean
     createdAt?: boolean
+    updatedAt?: boolean
   }
 
   export type ReviewInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2272,6 +2282,7 @@ export namespace Prisma {
       rating: number
       comment: string
       createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["review"]>
     composites: {}
   }
@@ -2672,6 +2683,7 @@ export namespace Prisma {
     readonly rating: FieldRef<"Review", 'Int'>
     readonly comment: FieldRef<"Review", 'String'>
     readonly createdAt: FieldRef<"Review", 'DateTime'>
+    readonly updatedAt: FieldRef<"Review", 'DateTime'>
   }
     
 
@@ -3039,7 +3051,8 @@ export namespace Prisma {
     author: 'author',
     rating: 'rating',
     comment: 'comment',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type ReviewScalarFieldEnum = (typeof ReviewScalarFieldEnum)[keyof typeof ReviewScalarFieldEnum]
@@ -3234,6 +3247,7 @@ export namespace Prisma {
     rating?: IntFilter<"Review"> | number
     comment?: StringFilter<"Review"> | string
     createdAt?: DateTimeFilter<"Review"> | Date | string
+    updatedAt?: DateTimeFilter<"Review"> | Date | string
     movie?: XOR<MovieScalarRelationFilter, MovieWhereInput>
   }
 
@@ -3244,6 +3258,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     movie?: MovieOrderByWithRelationInput
   }
 
@@ -3257,6 +3272,7 @@ export namespace Prisma {
     rating?: IntFilter<"Review"> | number
     comment?: StringFilter<"Review"> | string
     createdAt?: DateTimeFilter<"Review"> | Date | string
+    updatedAt?: DateTimeFilter<"Review"> | Date | string
     movie?: XOR<MovieScalarRelationFilter, MovieWhereInput>
   }, "id">
 
@@ -3267,6 +3283,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: ReviewCountOrderByAggregateInput
     _avg?: ReviewAvgOrderByAggregateInput
     _max?: ReviewMaxOrderByAggregateInput
@@ -3284,6 +3301,7 @@ export namespace Prisma {
     rating?: IntWithAggregatesFilter<"Review"> | number
     comment?: StringWithAggregatesFilter<"Review"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
   }
 
   export type MovieCreateInput = {
@@ -3376,6 +3394,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt?: Date | string
+    updatedAt?: Date | string
     movie: MovieCreateNestedOneWithoutReviewsInput
   }
 
@@ -3386,6 +3405,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ReviewUpdateInput = {
@@ -3393,6 +3413,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     movie?: MovieUpdateOneRequiredWithoutReviewsNestedInput
   }
 
@@ -3403,6 +3424,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ReviewCreateManyInput = {
@@ -3412,6 +3434,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ReviewUpdateManyMutationInput = {
@@ -3419,6 +3442,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ReviewUncheckedUpdateManyInput = {
@@ -3428,6 +3452,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -3667,6 +3692,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ReviewAvgOrderByAggregateInput = {
@@ -3682,6 +3708,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ReviewMinOrderByAggregateInput = {
@@ -3691,6 +3718,7 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrder
     createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ReviewSumOrderByAggregateInput = {
@@ -3961,6 +3989,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ReviewUncheckedCreateWithoutMovieInput = {
@@ -3969,6 +3998,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ReviewCreateOrConnectWithoutMovieInput = {
@@ -4007,6 +4037,7 @@ export namespace Prisma {
     rating?: IntFilter<"Review"> | number
     comment?: StringFilter<"Review"> | string
     createdAt?: DateTimeFilter<"Review"> | Date | string
+    updatedAt?: DateTimeFilter<"Review"> | Date | string
   }
 
   export type MovieCreateWithoutReviewsInput = {
@@ -4077,6 +4108,7 @@ export namespace Prisma {
     rating: number
     comment: string
     createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ReviewUpdateWithoutMovieInput = {
@@ -4084,6 +4116,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ReviewUncheckedUpdateWithoutMovieInput = {
@@ -4092,6 +4125,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ReviewUncheckedUpdateManyWithoutMovieInput = {
@@ -4100,6 +4134,7 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

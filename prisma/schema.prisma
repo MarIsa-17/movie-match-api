@@ -49,5 +49,6 @@ model Review {
   rating    Int      // 1-5 estrellas
   comment   String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
  // 1:N ---> pelicula tiene 1 o muchas reseñas 1:N (1 a N / 1 a muchos)
