@@ -3,6 +3,6 @@ import * as statsController from '../controllers/statsController.js';
 
 const router = Router();
 
-router.get('/stats', statsController.getStats);
+router.get('/reports/dashboard', statsController.getStats);
 
 export default router;

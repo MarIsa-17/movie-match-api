@@ -71,7 +71,7 @@ app.use("/movies", moviesRouter);
 app.use(reviewRouter);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
-app.use(statsRouter);
+app.use("/movies", statsRouter);
 // ===== MIDDLEWARES DE ERROR (DESPUÉS de rutas) =====
 // ¿Por qué después? Porque capturan lo que las rutas NO manejaron
 app.use(notFound); // Rutas no encontradas (404)
